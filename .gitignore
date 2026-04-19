@@ -1,0 +1,32 @@
+# ── OS / Editor ───────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# ── Frontend (src/frontend) ───────────────────────────────────
+src/frontend/node_modules/
+src/frontend/dist/
+src/frontend/.env*.local
+
+# ── Video tool (src/video) ────────────────────────────────────
+src/video/node_modules/
+src/video/out/
+
+# ── Backend (src/backend) ─────────────────────────────────────
+src/backend/vendor/
+src/backend/node_modules/
+src/backend/storage/logs/*.log
+src/backend/storage/framework/cache/data/
+src/backend/storage/framework/sessions/
+src/backend/storage/framework/views/
+src/backend/.phpunit.cache/
+src/backend/.phpunit.result.cache
+src/backend/public/storage
+src/backend/public/hot
+src/backend/public/build
+
+# NOTE: src/backend/.env IS intentionally committed.
+# This project uses SQLite with no real credentials — it's safe to
+# commit so the repo can be cloned and run on another PC without extra setup.

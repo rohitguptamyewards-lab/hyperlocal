@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__Claude_Preview__preview_start",
+      "Read(//opt/homebrew/Cellar/node/25.6.1/bin/**)",
+      "Read(//usr/local/bin/**)",
+      "Read(//opt/homebrew/Cellar/**)",
+      "Bash(php artisan:*)",
+      "Bash(/opt/homebrew/bin/php artisan:*)"
+    ]
+  }
+}

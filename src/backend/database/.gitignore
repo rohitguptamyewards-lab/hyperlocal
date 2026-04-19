@@ -1,0 +1,5 @@
+# Intentionally NOT excluding database.sqlite so it is committed with local dev data.
+# Only exclude test/shadow databases created by Pest/PHPUnit:
+*.sqlite-wal
+*.sqlite-shm
+_testing.sqlite

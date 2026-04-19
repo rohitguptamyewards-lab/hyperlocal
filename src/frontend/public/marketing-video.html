@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hyperlocal Network — Full Video</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { width:100%; height:100%; overflow:hidden; background:#000; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sans-serif; cursor:pointer; user-select:none; }
+  #scaler { width:1280px; height:720px; transform-origin:top left; position:absolute; top:0; left:0; }
+  #stage { position:relative; width:1280px; height:720px; overflow:hidden; background:#0a0a0f; }
+  .scene { position:absolute; inset:0; opacity:0; transition:opacity 0.6s ease; pointer-events:none; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+  .scene.active { opacity:1; pointer-events:all; }
+  #progress-bar { position:fixed; bottom:0; left:0; height:4px; background:linear-gradient(90deg,#6366F1,#22C55E,#F59E0B); width:0%; transition:width 0.15s linear; z-index:999; border-radius:0 2px 2px 0; }
+  .ctrl-btn { position:fixed; bottom:18px; background:rgba(255,255,255,0.1); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.15); color:white; padding:8px 16px; border-radius:24px; font-size:13px; cursor:pointer; z-index:999; transition:background 0.2s; font-family:inherit; }
+  .ctrl-btn:hover { background:rgba(255,255,255,0.2); }
+  #restart-btn { right:24px; }
+  #sound-btn { right:120px; }
+
+  /* Typography */
+  .headline { font-size:56px; font-weight:800; line-height:1.1; letter-spacing:-2px; color:white; }
+  .subhead { font-size:24px; font-weight:500; line-height:1.4; color:rgba(255,255,255,0.5); }
+  .caption { font-size:13px; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; color:rgba(255,255,255,0.4); }
+  .indigo { color:#818cf8; } .green { color:#34d399; } .amber { color:#fbbf24; }
+
+  /* Entrances */
+  .pop { opacity:0; transform:translateY(30px) scale(0.95); transition:opacity 0.5s cubic-bezier(0.22,1,0.36,1), transform 0.5s cubic-bezier(0.22,1,0.36,1); }
+  .pop.show { opacity:1; transform:translateY(0) scale(1); }
+  .pop.d1 { transition-delay:0.3s; } .pop.d2 { transition-delay:0.6s; } .pop.d3 { transition-delay:0.9s; } .pop.d4 { transition-delay:1.2s; } .pop.d5 { transition-delay:1.6s; }
+  .slide-l { opacity:0; transform:translateX(-80px); transition:all 0.6s cubic-bezier(0.22,1,0.36,1); }
+  .slide-r { opacity:0; transform:translateX(80px); transition:all 0.6s cubic-bezier(0.22,1,0.36,1); }
+  .slide-l.show, .slide-r.show { opacity:1; transform:translateX(0); }
+  .slide-l.d1, .slide-r.d1 { transition-delay:0.2s; } .slide-l.d2, .slide-r.d2 { transition-delay:0.5s; }
+
+  /* ═══ STORY SLIDES ═══ */
+  .story { background:#0a0a0f; flex-direction:column; text-align:center; padding:0 120px; }
+  .story .st-line { font-size:46px; font-weight:800; line-height:1.2; letter-spacing:-1.5px; color:white; margin-bottom:8px; }
+  .story .st-sub { font-size:22px; font-weight:400; color:rgba(255,255,255,0.45); line-height:1.4; }
+  .story .st-small { font-size:20px; font-weight:500; color:rgba(255,255,255,0.55); line-height:1.5; margin-bottom:6px; }
+  .story .st-dim { color:rgba(255,255,255,0.3); }
+  .story .st-red { color:#f87171; }
+  .story .st-question { font-size:20px; font-weight:500; color:rgba(255,255,255,0.35); font-style:italic; margin-bottom:16px; }
+  .story .st-answer { font-size:40px; font-weight:800; color:white; letter-spacing:-1px; }
+  /* Dramatic dim for slide 7 */
+  .story.dim-bg { background:linear-gradient(180deg,#050510,#0a0a0f); }
+
+  /* ═══ PRODUCT DEMO STYLES ═══ */
+  .ground { position:absolute; bottom:0; left:0; right:0; height:80px; background:linear-gradient(180deg,#1a1a2e,#16162b); }
+  .ground::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:rgba(255,255,255,0.08); }
+  .shop-icon { width:120px; height:150px; border-radius:16px; display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative; }
+  .shop-icon::after { content:''; position:absolute; inset:0; border-radius:16px; border:1px solid rgba(255,255,255,0.1); pointer-events:none; }
+  .shop-icon .emoji { font-size:40px; margin-bottom:8px; } .shop-icon .name { font-size:12px; font-weight:700; color:white; }
+  #pd1, #pd2 { padding:48px; }
+  #pd1 { background:#0d0d1a; } #pd2 { background:#0a0f1e; }
+  .text-col { max-width:400px; } .ui-col { flex:1; margin-left:48px; }
+  .app-shell { background:#f3f4f6; border-radius:16px; overflow:hidden; box-shadow:0 40px 100px rgba(0,0,0,0.5); display:flex; height:480px; }
+  .app-sidebar { width:200px; background:white; padding:20px 14px; flex-shrink:0; border-right:1px solid #e5e7eb; }
+  .sb-brand { font-size:15px; font-weight:800; color:#111827; padding:6px 10px 18px; } .sb-brand span { color:#6366F1; }
+  .sb-item { display:flex; align-items:center; padding:9px 10px; border-radius:8px; font-size:13px; font-weight:500; color:#6b7280; margin-bottom:2px; }
+  .sb-item.active { background:#eef2ff; color:#4F46E5; } .sb-item .icon { margin-right:8px; font-size:15px; }
+  .app-main { flex:1; padding:24px; overflow:hidden; background:#f9fafb; }
+  .card { background:white; border:1px solid #e5e7eb; border-radius:12px; padding:16px 18px; }
+  .badge { display:inline-block; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:700; }
+  .badge-green { background:#dcfce7; color:#16a34a; } .badge-amber { background:#fef3c7; color:#d97706; }
+  .check-list { list-style:none; margin-top:20px; }
+  .check-list li { display:flex; align-items:flex-start; font-size:16px; color:rgba(255,255,255,0.8); line-height:1.4; margin-bottom:12px; }
+  .check-list li::before { content:'✓'; color:#22c55e; font-weight:700; font-size:15px; margin-right:10px; margin-top:1px; flex-shrink:0; }
+  @keyframes bestMatchGlow { 0%,100%{box-shadow:0 0 0 0 rgba(99,102,241,0);} 50%{box-shadow:0 0 0 8px rgba(99,102,241,0.3);} }
+  @keyframes livePulse { 0%{box-shadow:0 0 0 0 rgba(22,163,74,0.5);} 50%{box-shadow:0 0 0 10px rgba(22,163,74,0);} 100%{box-shadow:0 0 0 0 rgba(22,163,74,0);} }
+  .live-pulse { animation:livePulse 1.5s ease-in-out 2; }
+
+  /* Journey */
+  #pd3 { background:linear-gradient(180deg,#0c0c1d 0%,#111128 60%,#1a1a2e 100%); flex-direction:column; }
+  .journey-stage { position:relative; width:100%; height:100%; overflow:hidden; }
+  .journey-step-indicator { position:absolute; top:30px; left:0; right:0; text-align:center; z-index:10; }
+  .step-pills { display:inline-flex; background:rgba(255,255,255,0.06); border-radius:24px; padding:4px; }
+  .step-pill { padding:8px 18px; border-radius:20px; font-size:12px; font-weight:600; color:rgba(255,255,255,0.3); transition:all 0.4s; }
+  .step-pill.active { background:rgba(99,102,241,0.3); color:white; } .step-pill.done { color:#34d399; }
+  .journey-text { position:absolute; bottom:100px; left:0; right:0; text-align:center; z-index:10; }
+  .journey-title { font-size:32px; font-weight:800; color:white; letter-spacing:-1px; margin-bottom:6px; }
+  .journey-sub { font-size:16px; color:rgba(255,255,255,0.4); }
+  #journey-svg { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:5; }
+  #journey-svg .path-line { fill:none; stroke:url(#pathGrad); stroke-width:3; stroke-linecap:round; stroke-dasharray:800; stroke-dashoffset:800; transition:stroke-dashoffset 2s cubic-bezier(0.4,0,0.2,1); }
+  #journey-svg .path-line.drawn { stroke-dashoffset:0; }
+  #journey-svg .journey-dot { fill:#818cf8; opacity:0; transition:opacity 0.4s; }
+  #journey-svg .journey-dot.show { opacity:1; }
+  .token-float { position:absolute; background:white; border-radius:14px; padding:12px 20px; box-shadow:0 8px 32px rgba(0,0,0,0.3); text-align:center; z-index:10; opacity:0; transform:scale(0.5); transition:all 0.5s cubic-bezier(0.34,1.56,0.64,1); }
+  .token-float.show { opacity:1; transform:scale(1); }
+  .token-label { font-size:10px; font-weight:700; letter-spacing:0.1em; color:#6366F1; text-transform:uppercase; margin-bottom:2px; }
+  .token-code { font-size:22px; font-weight:900; letter-spacing:3px; color:#1f2937; font-family:'SF Mono','Fira Code',monospace; }
+  .phone-mockup { position:absolute; z-index:10; width:120px; background:#1f2937; border-radius:18px; padding:6px; box-shadow:0 20px 50px rgba(0,0,0,0.5); opacity:0; transform:scale(0.7) translateY(20px); transition:all 0.5s cubic-bezier(0.34,1.56,0.64,1); }
+  .phone-mockup.show { opacity:1; transform:scale(1) translateY(0); }
+  .phone-screen { background:white; border-radius:14px; padding:14px; text-align:center; }
+  .discount-pop { position:absolute; z-index:15; opacity:0; transform:scale(0); transition:all 0.5s cubic-bezier(0.34,1.56,0.64,1); }
+  .discount-pop.show { opacity:1; transform:scale(1); }
+  .discount-circle { width:100px; height:100px; border-radius:50%; background:linear-gradient(135deg,#16a34a,#22c55e); display:flex; align-items:center; justify-content:center; flex-direction:column; box-shadow:0 8px 32px rgba(22,163,74,0.4); color:white; }
+  .discount-circle .amount { font-size:28px; font-weight:900; } .discount-circle .label { font-size:10px; font-weight:700; letter-spacing:0.05em; opacity:0.9; }
+  .confetti-piece { position:absolute; width:8px; height:8px; border-radius:2px; pointer-events:none; animation:confettiFall 1.5s ease-out forwards; }
+  @keyframes confettiFall { 0%{transform:translateY(0) rotate(0deg);opacity:1;} 100%{transform:translateY(200px) rotate(720deg);opacity:0;} }
+
+  /* Metrics */
+  #pd4 { background:linear-gradient(180deg,#060610,#0d0d1f); flex-direction:column; text-align:center; padding:50px 80px; }
+  .metric-row { display:flex; justify-content:center; gap:24px; margin:30px 0 20px; }
+  .metric-card { flex:1; max-width:260px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:28px 20px; text-align:center; }
+  .metric-card.ig { border-color:rgba(99,102,241,0.25); } .metric-card.gg { border-color:rgba(34,197,94,0.25); } .metric-card.ag { border-color:rgba(251,191,36,0.25); }
+  .metric-number { font-size:42px; font-weight:900; line-height:1; margin-bottom:6px; }
+  .metric-label { font-size:13px; color:rgba(255,255,255,0.4); font-weight:500; }
+  .bullet-row { display:flex; flex-wrap:wrap; justify-content:center; gap:12px 28px; }
+  .bullet-item { display:flex; align-items:center; font-size:15px; color:rgba(255,255,255,0.7); font-weight:500; }
+  .bullet-item::before { content:'✓'; color:#22c55e; font-weight:800; margin-right:8px; font-size:14px; }
+
+  /* CTA */
+  #pd5 { background:#0a0a0f; flex-direction:column; text-align:center; position:relative; overflow:hidden; }
+  #cta-particles { position:absolute; inset:0; pointer-events:none; overflow:hidden; }
+  .cta-btn { display:inline-block; background:linear-gradient(135deg,#4F46E5,#7C3AED); color:white; padding:18px 48px; border-radius:14px; font-size:20px; font-weight:800; margin-top:36px; letter-spacing:-0.3px; box-shadow:0 0 50px rgba(79,70,229,0.4); animation:ctaPulse 2s ease infinite; }
+  @keyframes ctaPulse { 0%,100%{box-shadow:0 0 30px rgba(79,70,229,0.3);} 50%{box-shadow:0 0 60px rgba(79,70,229,0.5);} }
+  .founding-badge { background:rgba(99,102,241,0.1); border:1px solid rgba(99,102,241,0.25); color:#a5b4fc; font-size:14px; font-weight:600; padding:8px 22px; border-radius:20px; margin-top:28px; }
+  .logo-lockup { display:flex; align-items:center; justify-content:center; margin-bottom:28px; }
+  .logo-icon { width:52px; height:52px; border-radius:14px; background:#4F46E5; display:flex; align-items:center; justify-content:center; font-size:26px; font-weight:900; color:white; margin-right:14px; animation:logoGlow 2s ease infinite; }
+  @keyframes logoGlow { 0%,100%{box-shadow:0 0 20px rgba(79,70,229,0.3);} 50%{box-shadow:0 0 40px rgba(79,70,229,0.6);} }
+  .logo-word { font-size:30px; font-weight:800; color:white; letter-spacing:-1px; } .logo-word span { color:#818cf8; }
+  .float-particle { position:absolute; border-radius:50%; pointer-events:none; animation:floatUp linear infinite; opacity:0; }
+  @keyframes floatUp { 0%{transform:translateY(0) translateX(0);opacity:0;} 10%{opacity:0.6;} 90%{opacity:0.3;} 100%{transform:translateY(-600px) translateX(var(--dx,0px));opacity:0;} }
+  .cta-ring { position:absolute; border-radius:50%; border:1px solid rgba(99,102,241,0.15); pointer-events:none; animation:ctaRing 4s linear infinite; }
+  @keyframes ctaRing { 0%{transform:scale(0.3);opacity:0.6;} 100%{transform:scale(2.5);opacity:0;} }
+  #noise { position:fixed; inset:0; pointer-events:none; z-index:10; opacity:0.025; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+</style>
+</head>
+<body>
+<div id="scaler">
+<div id="noise"></div>
+<div id="progress-bar"></div>
+<button class="ctrl-btn" id="sound-btn" onclick="toggleSound()">🔊 Sound</button>
+<button class="ctrl-btn" id="restart-btn" onclick="restart()">↺ Replay</button>
+<div id="stage">
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- STORY INTRO — 24 SLIDES                    -->
+<!-- ═══════════════════════════════════════════ -->
+
+<!-- ACT 1 — THE PROBLEM -->
+<div class="scene story" id="st1"><div><div class="st-line pop">You've built a good store.</div><div class="st-sub pop d1">But growth still needs new customers.</div></div></div>
+
+<div class="scene story" id="st2"><div><div class="st-line pop">But new customers?</div><div class="st-sub pop d1">That's the hard part.</div></div></div>
+
+<div class="scene story" id="st3"><div><div class="st-small pop">Ads are expensive.</div><div class="st-small pop d1">Flyers don't scale.</div><div class="st-small pop d2">Discounts attract deal-hunters.</div></div></div>
+
+<div class="scene story" id="st4"><div><div class="st-line pop">Now think about the stores<br>right around your shop.</div></div></div>
+
+<!-- ACT 2 — DIVING DEEPER -->
+<div class="scene story" id="st5"><div><div class="st-small pop">A gym with hundreds of members.</div><div class="st-small pop d1">A cafe with a loyal daily crowd.</div><div class="st-small pop d2">A salon with monthly visitors.</div></div></div>
+
+<div class="scene story" id="st6"><div><div class="st-line pop">They spend money in your area.</div><div class="st-sub pop d1">Every week.</div></div></div>
+
+<div class="scene story dim-bg" id="st7"><div><div class="st-line pop" style="font-size:50px;">But they don't know<br>you exist.</div></div></div>
+
+<div class="scene story" id="st8"><div><div class="st-line pop" style="font-size:38px;">And nearby stores have no simple way<br>to send those customers to you.</div></div></div>
+
+<!-- ACT 3 — THE SOLUTION -->
+<div class="scene story" id="st9"><div><div class="st-line pop" style="font-size:42px;">What if you could partner<br>with the businesses around you?</div></div></div>
+
+<div class="scene story" id="st10"><div><div class="st-line pop" style="font-size:38px;">You reward their customers<br>for visiting your store.</div></div></div>
+
+<div class="scene story" id="st11"><div><div class="st-line pop" style="font-size:38px;">They reward your customers<br>for visiting theirs.</div></div></div>
+
+<div class="scene story" id="st12"><div><div class="st-line pop" style="color:#818cf8;">It works both ways.</div><div class="st-sub pop d1" style="margin-top:12px; color:rgba(255,255,255,0.7);">Both stores get new customers.</div></div></div>
+
+<!-- ACT 4 — THE SYSTEM -->
+<div class="scene story" id="st13"><div><div class="st-line pop">We built a system that runs<br>the network for you.</div></div></div>
+
+<div class="scene story" id="st14"><div><div class="st-line pop" style="font-size:38px;">It finds the right partners near you.</div></div></div>
+
+<div class="scene story" id="st15"><div><div class="st-line pop" style="font-size:38px;">You set the offer. You set the rules.</div></div></div>
+
+<div class="scene story" id="st16"><div><div class="st-small pop">Scan QR</div><div class="st-small pop d1" style="font-size:24px;">→</div><div class="st-small pop d1">Get reward</div><div class="st-small pop d2" style="font-size:24px;">→</div><div class="st-small pop d2">Redeem at your store</div></div></div>
+
+<div class="scene story" id="st17"><div><div class="st-line pop" style="font-size:36px;">Every walk-in. Every redemption.<br>Every rupee. <span class="indigo">Tracked.</span></div></div></div>
+
+<!-- ACT 5 — INHIBITIONS -->
+<div class="scene story" id="st18"><div><div class="st-question pop">"What does it cost?"</div><div class="st-answer pop d1">Pay only when a verified<br>new customer walks in.</div></div></div>
+
+<div class="scene story" id="st19"><div><div class="st-question pop">"What if it doesn't work?"</div><div class="st-answer pop d1">You stay in control.<br>Pause anytime.</div></div></div>
+
+<div class="scene story" id="st20"><div><div class="st-question pop">"Is it hard to use?"</div><div class="st-answer pop d1">Simple for staff.<br>Fits your existing checkout.</div></div></div>
+
+<div class="scene story" id="st21"><div><div class="st-question pop">"Can I trust the numbers?"</div><div class="st-answer pop d1">Shared records.<br>Transparent settlements.</div></div></div>
+
+<div class="scene story" id="st22"><div><div class="st-question pop">"Who built this?"</div><div class="st-answer pop d1">Built on <span class="indigo">eWards.</span><br><span style="font-size:24px; color:rgba(255,255,255,0.4);">Trusted by retailers across India.</span></div></div></div>
+
+<!-- ACT 6 — TRANSITION -->
+<div class="scene story" id="st23"><div><div class="st-sub pop">Early merchants get first access<br>to the best nearby partnerships.</div></div></div>
+
+<div class="scene story" id="st24"><div><div class="st-line pop" style="color:#818cf8;">Now see how this works<br>for a real merchant →</div></div></div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- PRODUCT DEMO — 5 SCENES                    -->
+<!-- ═══════════════════════════════════════════ -->
+
+<!-- PD1: Find Partners -->
+<div class="scene" id="pd1">
+  <div class="text-col">
+    <div class="caption pop" style="margin-bottom:14px;">Smart matching</div>
+    <div class="headline pop d1" style="font-size:44px; margin-bottom:14px;">We find the <span class="indigo">best partners</span><br>near you.</div>
+    <div class="subhead pop d2" style="font-size:17px;">Matched by location and customer fit.</div>
+  </div>
+  <div class="ui-col slide-r d1">
+    <div class="app-shell">
+      <div class="app-sidebar"><div class="sb-brand">Hyper<span>local</span></div><div class="sb-item"><span class="icon">🏠</span> Dashboard</div><div class="sb-item"><span class="icon">🤝</span> Partnerships</div><div class="sb-item active"><span class="icon">🔍</span> Find Partners</div><div class="sb-item"><span class="icon">🧾</span> Cashier</div><div class="sb-item"><span class="icon">⚙️</span> Settings</div></div>
+      <div class="app-main">
+        <div style="font-size:18px; font-weight:800; color:#111827; margin-bottom:3px;">Find Partners</div>
+        <div style="font-size:12px; color:#9ca3af; margin-bottom:16px;">Auto-suggested matches near you</div>
+        <div style="display:flex; margin-bottom:18px;"><div style="flex:0 0 80px; background:white; border:1px solid #e5e7eb; border-radius:8px; padding:7px 10px; font-size:12px; color:#6b7280; margin-right:8px;">Mumbai</div><div style="flex:1; background:white; border:1px solid #e5e7eb; border-radius:8px; padding:7px 10px; font-size:12px; color:#6b7280; margin-right:8px;">All categories</div><div style="flex:0 0 70px; background:#4F46E5; border-radius:8px; padding:7px; font-size:12px; color:white; font-weight:700; text-align:center;">Search</div></div>
+        <div id="pd1-best" class="card pop d2" style="margin-bottom:10px; border-color:#e0e7ff;"><div style="display:flex; align-items:center;"><div style="width:40px; height:40px; border-radius:10px; background:#f0fdf4; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; margin-right:10px;">🏋️</div><div style="flex:1;"><div style="font-size:14px; font-weight:800; color:#111827;">FitZone Gyms</div><div style="font-size:11px; color:#9ca3af; margin-top:1px;">Gym · 2 outlets · Bandra</div></div><div style="text-align:right;"><div class="badge badge-green" style="margin-bottom:6px;">90% match</div><div style="background:#4F46E5; color:white; font-size:11px; font-weight:700; padding:5px 12px; border-radius:7px;">Partner up</div></div></div><div style="margin-top:8px; background:#f9fafb; border-radius:7px; padding:7px 10px;"><div style="display:flex; align-items:center;"><div style="font-size:10px; font-weight:800; color:#6366F1; letter-spacing:0.05em; margin-right:8px;">90% FIT</div><div style="flex:1; height:5px; background:#e0e7ff; border-radius:3px;"><div style="width:90%; height:100%; background:#6366F1; border-radius:3px;"></div></div></div><div style="font-size:10px; color:#16a34a; font-weight:700; margin-top:4px;">Most likely to send you new customers</div></div></div>
+        <div class="card pop d3" style="margin-bottom:10px;"><div style="display:flex; align-items:center;"><div style="width:40px; height:40px; border-radius:10px; background:#fff7ed; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; margin-right:10px;">📚</div><div style="flex:1;"><div style="font-size:14px; font-weight:800; color:#111827;">BookNook</div><div style="font-size:11px; color:#9ca3af;">Bookstore · Bandra</div></div><div class="badge badge-amber">72% match</div></div></div>
+        <div class="card pop d4" style="opacity:0.5;"><div style="display:flex; align-items:center;"><div style="width:40px; height:40px; border-radius:10px; background:#fef2f2; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; margin-right:10px;">🍕</div><div style="flex:1;"><div style="font-size:14px; font-weight:800; color:#111827;">Pizza Palace</div><div style="font-size:11px; color:#9ca3af;">Restaurant · Bandra</div></div><div class="badge" style="background:#f3f4f6; color:#6b7280;">58%</div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PD2: Go Live -->
+<div class="scene" id="pd2">
+  <div class="text-col"><div class="caption pop" style="margin-bottom:14px;">Full control</div><div class="headline pop d1" style="font-size:42px; margin-bottom:14px;">You stay in<br><span class="green">full control.</span></div><div class="subhead pop d2" style="font-size:17px;">Set discounts, caps, and rules. Pause anytime.</div><ul class="check-list pop d3"><li>Pause or stop any time — no contracts</li><li>Each side manages their own settings</li></ul></div>
+  <div class="ui-col slide-r d1">
+    <div class="app-shell">
+      <div class="app-sidebar"><div class="sb-brand">Hyper<span>local</span></div><div class="sb-item"><span class="icon">🏠</span> Dashboard</div><div class="sb-item active"><span class="icon">🤝</span> Partnerships</div><div class="sb-item"><span class="icon">🔍</span> Find Partners</div><div class="sb-item"><span class="icon">🧾</span> Cashier</div><div class="sb-item"><span class="icon">⚙️</span> Settings</div></div>
+      <div class="app-main">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px;"><div><div style="font-size:18px; font-weight:800; color:#111827;">Brew & Co × FitZone</div><div style="font-size:11px; color:#9ca3af;">Brand-wide · Created today</div></div><div id="pd2-live" class="badge badge-green" style="font-size:12px; padding:6px 14px;">● Live</div></div>
+        <div style="background:#eef2ff; border:1px solid #c7d2fe; border-radius:10px; padding:14px 16px; margin-bottom:12px;"><div style="font-size:13px; font-weight:800; color:#3730a3; margin-bottom:6px;">Partnership Agreement</div><div style="font-size:13px; color:#3730a3; line-height:1.5;">Customers of <strong>Brew & Co</strong> visiting <strong>FitZone</strong><br>get up to <strong>10% off</strong> (max ₹500). Min bill: ₹200.</div></div>
+        <div class="card" style="padding:12px 14px;"><div style="font-size:12px; font-weight:700; color:#111827; margin-bottom:8px;">My settings</div><div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;"><div style="font-size:12px; color:#6b7280;">Issue tokens</div><div style="width:34px; height:18px; background:#4F46E5; border-radius:9px; position:relative;"><div style="position:absolute; right:2px; top:2px; width:14px; height:14px; background:white; border-radius:50%;"></div></div></div><div style="display:flex; justify-content:space-between; align-items:center;"><div style="font-size:12px; color:#6b7280;">Accept redemptions</div><div style="width:34px; height:18px; background:#4F46E5; border-radius:9px; position:relative;"><div style="position:absolute; right:2px; top:2px; width:14px; height:14px; background:white; border-radius:50%;"></div></div></div></div>
+        <div class="pop d3" style="text-align:center; margin-top:14px;"><div style="display:inline-flex; align-items:center; background:rgba(79,70,229,0.08); border:1px solid rgba(79,70,229,0.2); border-radius:14px; padding:10px 24px;"><span style="font-size:14px; font-weight:800; color:#4F46E5;">☕ Brew & Co</span><span style="font-size:24px; margin:0 12px;">🤝</span><span style="font-size:14px; font-weight:800; color:#16a34a;">FitZone 🏋️</span></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PD3: Customer Journey -->
+<div class="scene" id="pd3">
+  <div class="journey-stage">
+    <div class="journey-step-indicator pop"><div class="step-pills"><div class="step-pill" id="jp1">Scan QR</div><div class="step-pill" id="jp2">Get Token</div><div class="step-pill" id="jp3">Visit Partner</div><div class="step-pill" id="jp4">Redeem</div></div></div>
+    <div class="ground"></div>
+    <div style="position:absolute; bottom:100px; left:100px;"><div class="shop-icon slide-l" style="background:linear-gradient(180deg,#312e81,#1e1b4b); width:140px; height:170px;"><div class="emoji" style="font-size:48px;">☕</div><div class="name" style="font-size:13px;">Brew & Co</div></div></div>
+    <div style="position:absolute; bottom:100px; right:100px;"><div class="shop-icon slide-r" style="background:linear-gradient(180deg,#065f46,#064e3b); width:140px; height:170px;"><div class="emoji" style="font-size:48px;">🏋️</div><div class="name" style="font-size:13px;">FitZone</div></div></div>
+    <svg id="journey-svg" viewBox="0 0 1280 720"><defs><linearGradient id="pathGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#6366F1"/><stop offset="100%" stop-color="#22c55e"/></linearGradient><filter id="dG"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><path id="j-path" class="path-line" d="M240,480 C400,350 880,350 1040,480"/><circle id="j-dot" class="journey-dot" cx="240" cy="480" r="8" filter="url(#dG)"/></svg>
+    <div id="pd3-phone" class="phone-mockup" style="top:150px; left:200px;"><div class="phone-screen"><div style="font-size:9px; font-weight:700; color:#6366F1; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:6px;">Scan to claim</div><svg width="70" height="70" viewBox="0 0 60 60" style="display:block; margin:0 auto;"><rect x="5" y="5" width="20" height="20" rx="3" fill="#1f2937"/><rect x="8" y="8" width="14" height="14" rx="2" fill="white"/><rect x="11" y="11" width="8" height="8" rx="1" fill="#6366F1"/><rect x="35" y="5" width="20" height="20" rx="3" fill="#1f2937"/><rect x="38" y="8" width="14" height="14" rx="2" fill="white"/><rect x="41" y="11" width="8" height="8" rx="1" fill="#6366F1"/><rect x="5" y="35" width="20" height="20" rx="3" fill="#1f2937"/><rect x="8" y="38" width="14" height="14" rx="2" fill="white"/><rect x="11" y="41" width="8" height="8" rx="1" fill="#6366F1"/><rect x="35" y="35" width="6" height="6" fill="#1f2937"/><rect x="44" y="44" width="6" height="6" fill="#1f2937"/></svg></div></div>
+    <div class="token-float" id="pd3-token" style="top:160px; left:50%; margin-left:-70px;"><div class="token-label">Your reward token</div><div class="token-code">HLP4X9K2</div></div>
+    <div id="pd3-disc" class="discount-pop" style="top:140px; right:180px;"><div class="discount-circle"><div class="amount">₹50</div><div class="label">OFF</div></div><div style="text-align:center; margin-top:8px; font-size:12px; font-weight:700; color:#34d399;">New walk-in verified</div></div>
+    <div class="journey-text"><div class="journey-title" id="jt"></div><div class="journey-sub" id="js"></div></div>
+    <div id="pd3-confetti" style="position:absolute; inset:0; pointer-events:none; overflow:hidden;"></div>
+  </div>
+</div>
+
+<!-- PD4: Metrics -->
+<div class="scene" id="pd4">
+  <div style="width:100%;">
+    <div class="caption pop" style="margin-bottom:12px;">Real results</div>
+    <div class="headline pop d1" style="font-size:48px; margin-bottom:4px;">Track <span class="indigo">everything.</span></div>
+    <div style="font-size:12px; color:rgba(255,255,255,0.25); margin-bottom:6px;" class="pop d1">Sample merchant dashboard</div>
+    <div class="metric-row">
+      <div class="metric-card ig pop d2"><div class="metric-number indigo" id="mc">0</div><div class="metric-label">New Customers</div></div>
+      <div class="metric-card gg pop d3"><div class="metric-number green" id="mr">₹0</div><div class="metric-label">Revenue Generated</div></div>
+      <div class="metric-card ag pop d4"><div class="metric-number amber" id="mp">₹0</div><div class="metric-label">Net Referral Profit</div></div>
+    </div>
+    <div style="display:flex; justify-content:center; gap:16px; margin-bottom:24px;">
+      <div class="pop d4" style="font-size:13px; color:rgba(255,255,255,0.5);"><span style="font-weight:800; color:#34d399;"><span id="mret">0</span>%</span> return within 30 days</div>
+      <div class="pop d5" style="font-size:13px; color:rgba(255,255,255,0.5);">Net ledger: <span style="font-weight:800; color:#34d399;">+₹<span id="mnet">0</span></span></div>
+    </div>
+    <div class="bullet-row pop d5" style="margin-bottom:16px;"><div class="bullet-item">No ad spend wasted</div><div class="bullet-item">Only pay when customers convert</div><div class="bullet-item">Every referral tracked</div><div class="bullet-item">ROI visible in real time</div></div>
+  </div>
+</div>
+
+<!-- PD5: CTA -->
+<div class="scene" id="pd5">
+  <div id="cta-particles"></div>
+  <div id="cta-rings" style="position:absolute; inset:0; pointer-events:none; overflow:hidden;"></div>
+  <div style="position:relative; z-index:2;">
+    <div class="logo-lockup pop"><div class="logo-icon">H</div><div class="logo-word"><span>Hyper</span>local Network</div></div>
+    <div class="headline pop d1" style="font-size:50px; max-width:720px; margin:0 auto 14px;">Want more <span class="indigo">walk-ins?</span></div>
+    <div class="subhead pop d2" style="font-size:20px;">You send them customers. They send you customers.</div>
+    <div class="pop d3"><div class="cta-btn">See My Nearby Matches →</div></div>
+    <div class="founding-badge pop d4">🎯 Founding merchants get category priority in their area</div>
+  </div>
+</div>
+
+</div></div>
+
+<script>
+function scaleToFit(){var s=document.getElementById('scaler'),sx=window.innerWidth/1280,sy=window.innerHeight/720,sc=Math.min(sx,sy);s.style.transform='scale('+sc+')';s.style.left=((window.innerWidth-1280*sc)/2)+'px';s.style.top=((window.innerHeight-720*sc)/2)+'px';}
+scaleToFit();window.addEventListener('resize',scaleToFit);
+</script>
+
+<script>
+// ═══ VOICEOVER (Web Speech API) ═══
+var VO={
+  voice:null, ready:false,
+  init:function(){
+    var voices=speechSynthesis.getVoices();
+    var pref=['Google UK English Female','Google US English','Samantha','Karen','Rishi','Veena','Daniel','Moira'];
+    for(var i=0;i<pref.length;i++){for(var j=0;j<voices.length;j++){if(voices[j].name.indexOf(pref[i])!==-1){this.voice=voices[j];this.ready=true;return;}}}
+    for(var j=0;j<voices.length;j++){if(voices[j].lang.indexOf('en')===0){this.voice=voices[j];this.ready=true;return;}}
+    this.ready=true;
+  },
+  speak:function(text){
+    speechSynthesis.cancel();
+    if(!text||!this.ready)return;
+    var u=new SpeechSynthesisUtterance(text);
+    if(this.voice)u.voice=this.voice;
+    u.rate=0.92; u.pitch=1.0; u.volume=1.0;
+    speechSynthesis.speak(u);
+  },
+  stop:function(){speechSynthesis.cancel();}
+};
+if(speechSynthesis.onvoiceschanged!==undefined){speechSynthesis.onvoiceschanged=function(){VO.init();};}
+setTimeout(function(){VO.init();},100);
+
+var VO_MAP={
+  st1:null,
+  st2:"Getting regulars took you years. But bringing in new faces — that's still the hardest part of running a store.",
+  st3:"Some work for a while. Most just burn money. And at the end of the month, you still don't know which spend actually brought people in.",
+  st4:"Here's what most store owners miss.",
+  st5:"Maybe it's a gym with hundreds of members. A cafe with a loyal morning crowd. A salon where people come back every month.",
+  st6:"These aren't strangers. They already live nearby. They already spend money within minutes of your store.",
+  st7:null,
+  st8:"Nearby stores may want to help each other grow. But today, there's no simple system that makes that possible.",
+  st9:null,
+  st10:"It's simple. Their customers get a small benefit to try your store. Your customers get a benefit to try theirs. And because it works both ways, both businesses have a reason to participate.",
+  st11:null,
+  st12:"This is not advertising. It is mutual customer exchange between nearby stores. Both businesses get real, new, nearby customers.",
+  st13:"Partner discovery, offer rules, customer tracking, and settlements — all handled for you. No manual work.",
+  st14:"The system suggests nearby businesses most likely to send you relevant customers — based on category fit, proximity, and customer behaviour patterns.",
+  st15:"You decide how much to offer, set caps and limits, and go live. Both sides control their own settings independently.",
+  st16:"A customer at your partner's store scans a simple QR code. They get a reward token. They walk over to your store. The benefit is applied within the normal checkout flow.",
+  st17:"You see exactly who came, when they came, how much they spent, and whether they came back. In real time.",
+  st18:"No wasted spend. You pay only when a verified new customer actually walks into your store.",
+  st19:"You stay in control. Pause or stop any partnership, any time. No lock-in. No long-term contracts.",
+  st20:"Simple for your staff and designed to fit into your existing checkout process. No new hardware needed.",
+  st21:"Both sides see the same records. Every transaction. Every customer. With automated monthly settlements.",
+  st22:"Built on eWards retail infrastructure — trusted by retailers across India to drive loyalty, repeat visits, and customer engagement.",
+  st23:"The earlier you join in your area, the better your partner network will be.",
+  st24:"Now see it in action."
+};
+</script>
+
+<script>
+// ═══ AMBIENT MUSIC (Acts 1-3) ═══
+var Amb={
+  ctx:null,gain:null,oscs:[],
+  start:function(){
+    if(this.ctx)return;
+    this.ctx=new(window.AudioContext||window.webkitAudioContext)();
+    this.gain=this.ctx.createGain();this.gain.gain.setValueAtTime(0,this.ctx.currentTime);
+    this.gain.gain.linearRampToValueAtTime(0.1,this.ctx.currentTime+3);this.gain.connect(this.ctx.destination);
+    var self=this;
+    [65.41,130.81,164.81,196].forEach(function(f,i){
+      var o=self.ctx.createOscillator();o.type=i===0?'sine':'triangle';o.frequency.value=f;
+      var g=self.ctx.createGain();g.gain.value=i===0?0.25:0.06;
+      var flt=self.ctx.createBiquadFilter();flt.type='lowpass';flt.frequency.value=400;flt.Q.value=1;
+      o.connect(flt);flt.connect(g);g.connect(self.gain);o.start();self.oscs.push(o);
+    });
+  },
+  fadeOut:function(dur){if(!this.gain)return;this.gain.gain.linearRampToValueAtTime(0,this.ctx.currentTime+dur);var self=this;setTimeout(function(){self.stop();},dur*1000+200);},
+  stop:function(){this.oscs.forEach(function(o){try{o.stop();}catch(e){}});this.oscs=[];if(this.ctx){try{this.ctx.close();}catch(e){}}this.ctx=null;this.gain=null;}
+};
+
+// ═══ BOUNCY MUSIC (Acts 4+ and product demo) ═══
+var Music=(function(){var ctx=null,mg=null,muted=false,running=false,st=null,nnt=0,cs=0,BPM=128,SS=(60/BPM)/4,STEPS=16;
+var BN=[130.81,130.81,130.81,130.81,174.61,174.61,174.61,174.61,220,220,220,220,196,196,196,196];
+var AR=[523.25,659.25,783.99,659.25,698.46,880,1046.5,880,880,1046.5,1318.51,1046.5,783.99,987.77,1174.66,987.77];
+var CH=[[261.63,329.63,392],[349.23,440,523.25],[440,523.25,659.25],[392,493.88,587.33]];
+var KI=[0,4,8,12],CL=[4,12],HT=[0,2,4,6,8,10,12,14],OH=[6,14],BA=[0,3,4,7,8,11,12,15],CD=[0,8];
+function has(a,v){return a.indexOf(v)!==-1;}
+function mK(t){var o=ctx.createOscillator(),e=ctx.createGain();o.connect(e);e.connect(mg);o.frequency.setValueAtTime(160,t);o.frequency.exponentialRampToValueAtTime(40,t+.15);e.gain.setValueAtTime(1,t);e.gain.exponentialRampToValueAtTime(.001,t+.2);o.start(t);o.stop(t+.21);}
+function mCl(t){var l=ctx.sampleRate*.08,b=ctx.createBuffer(1,l,ctx.sampleRate),d=b.getChannelData(0);for(var i=0;i<l;i++)d[i]=Math.random()*2-1;var s=ctx.createBufferSource();s.buffer=b;var f=ctx.createBiquadFilter();f.type='bandpass';f.frequency.value=2500;f.Q.value=1;var e=ctx.createGain();s.connect(f);f.connect(e);e.connect(mg);e.gain.setValueAtTime(.6,t);e.gain.exponentialRampToValueAtTime(.001,t+.1);s.start(t);s.stop(t+.11);}
+function mH(t,op){var l=ctx.sampleRate*(op?.12:.03),b=ctx.createBuffer(1,l,ctx.sampleRate),d=b.getChannelData(0);for(var i=0;i<l;i++)d[i]=Math.random()*2-1;var s=ctx.createBufferSource();s.buffer=b;var f=ctx.createBiquadFilter();f.type='highpass';f.frequency.value=8000;var e=ctx.createGain();s.connect(f);f.connect(e);e.connect(mg);e.gain.setValueAtTime(op?.15:.1,t);e.gain.exponentialRampToValueAtTime(.001,t+(op?.12:.03));s.start(t);s.stop(t+(op?.13:.04));}
+function mB(t,fr){var o=ctx.createOscillator();o.type='sawtooth';o.frequency.setValueAtTime(fr,t);var f=ctx.createBiquadFilter();f.type='lowpass';f.frequency.value=500;f.Q.value=6;var e=ctx.createGain();o.connect(f);f.connect(e);e.connect(mg);e.gain.setValueAtTime(.45,t);e.gain.exponentialRampToValueAtTime(.001,t+SS*1.4);o.start(t);o.stop(t+SS*1.5);}
+function mCh(t,n){n.forEach(function(fr){var o=ctx.createOscillator();o.type='triangle';o.frequency.setValueAtTime(fr,t);o.detune.value=Math.random()*6;var e=ctx.createGain();o.connect(e);e.connect(mg);e.gain.setValueAtTime(0,t);e.gain.linearRampToValueAtTime(.06,t+.02);e.gain.setValueAtTime(.06,t+SS*6);e.gain.linearRampToValueAtTime(0,t+SS*7.5);o.start(t);o.stop(t+SS*8);});}
+function mP(t,fr){var o=ctx.createOscillator();o.type='square';o.frequency.setValueAtTime(fr,t);var f=ctx.createBiquadFilter();f.type='lowpass';f.frequency.setValueAtTime(4000,t);f.frequency.exponentialRampToValueAtTime(800,t+SS*.6);f.Q.value=2;var e=ctx.createGain();o.connect(f);f.connect(e);e.connect(mg);e.gain.setValueAtTime(.08,t);e.gain.exponentialRampToValueAtTime(.001,t+SS*.8);o.start(t);o.stop(t+SS);}
+function mBe(t,fr){var o=ctx.createOscillator();o.type='sine';o.frequency.setValueAtTime(fr*2,t);var e=ctx.createGain();o.connect(e);e.connect(mg);e.gain.setValueAtTime(.04,t);e.gain.exponentialRampToValueAtTime(.001,t+SS*2);o.start(t);o.stop(t+SS*2.1);}
+function sched(step,t){var s=step%STEPS,ci=Math.floor(s/4);if(has(KI,s))mK(t);if(has(CL,s))mCl(t);if(has(OH,s))mH(t,true);else if(has(HT,s))mH(t,false);if(has(BA,s))mB(t,BN[s]);if(has(CD,s))mCh(t,CH[ci]);mP(t,AR[s]);if(s%4===0)mBe(t,AR[s]);}
+function scheduler(){var LA=.12;while(nnt<ctx.currentTime+LA){sched(cs,nnt);nnt+=SS;cs++;}st=setTimeout(scheduler,20);}
+function init(vol){if(running)return;if(!ctx){ctx=new(window.AudioContext||window.webkitAudioContext)();mg=ctx.createGain();mg.gain.setValueAtTime(0,ctx.currentTime);mg.gain.linearRampToValueAtTime(vol||.65,ctx.currentTime+1.5);mg.connect(ctx.destination);}if(ctx.state==='suspended')ctx.resume();nnt=ctx.currentTime+.05;cs=0;running=true;scheduler();}
+function stop(){running=false;if(st)clearTimeout(st);}
+function setVol(v){if(mg&&ctx)mg.gain.linearRampToValueAtTime(v,ctx.currentTime+0.5);}
+function toggleMute(){if(!ctx){init(.65);return;}muted=!muted;if(mg&&ctx)mg.gain.linearRampToValueAtTime(muted?0:.65,ctx.currentTime+.2);var b=document.getElementById('sound-btn');if(b)b.textContent=muted?'🔇 Sound':'🔊 Sound';}
+return{init:init,stop:stop,setVol:setVol,toggleMute:toggleMute};})();
+
+var soundOn=true;
+function toggleSound(){
+  soundOn=!soundOn;
+  if(soundOn){Amb.start();Music.init(.4);}
+  else{Amb.stop();Music.stop();VO.stop();}
+  document.getElementById('sound-btn').textContent=soundOn?'🔊 Sound':'🔇 Sound';
+}
+</script>
+
+<script>
+// ═══ SCENE CONTROLLER ═══
+var SCENES=[
+  // Story: 24 slides (~134s)
+  {id:'st1',start:0,end:5},{id:'st2',start:5,end:11},{id:'st3',start:11,end:18},{id:'st4',start:18,end:24},
+  {id:'st5',start:24,end:31},{id:'st6',start:31,end:36},{id:'st7',start:36,end:41},{id:'st8',start:41,end:47},
+  {id:'st9',start:48,end:53},{id:'st10',start:53,end:58},{id:'st11',start:58,end:62},{id:'st12',start:62,end:68},
+  {id:'st13',start:69,end:74},{id:'st14',start:74,end:79},{id:'st15',start:79,end:84},{id:'st16',start:84,end:90},{id:'st17',start:90,end:95},
+  {id:'st18',start:95,end:101},{id:'st19',start:101,end:107},{id:'st20',start:107,end:113},{id:'st21',start:113,end:119},{id:'st22',start:119,end:125},
+  {id:'st23',start:125,end:130},{id:'st24',start:130,end:134},
+  // Product demo: 5 scenes (~55s)
+  {id:'pd1',start:134,end:143},{id:'pd2',start:143,end:151},{id:'pd3',start:151,end:167},{id:'pd4',start:167,end:179},{id:'pd5',start:179,end:189}
+];
+var TOTAL=189,startTime=null,rafId=null,curScene=null,jPhase=-1;
+var ambStarted=false,musicStarted=false;
+
+function fmtNum(n){return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g,',');}
+function animCnt(el,target,prefix,dur,noFmt){if(!el)return;var s=performance.now();function tick(now){var p=Math.min((now-s)/dur,1),e=1-Math.pow(1-p,3),v=Math.round(target*e);el.textContent=prefix+(noFmt?v:fmtNum(v));if(p<1)requestAnimationFrame(tick);else el.textContent=prefix+(noFmt?target:fmtNum(target));}requestAnimationFrame(tick);}
+
+function spawnConfetti(c){if(!c)return;var cols=['#6366F1','#22c55e','#f59e0b','#f472b6','#60a5fa'];for(var i=0;i<40;i++){var p=document.createElement('div');p.className='confetti-piece';p.style.left=(30+Math.random()*40)+'%';p.style.top=(10+Math.random()*20)+'%';p.style.background=cols[Math.floor(Math.random()*cols.length)];p.style.width=(4+Math.random()*6)+'px';p.style.height=p.style.width;p.style.animationDuration=(1+Math.random())+'s';p.style.animationDelay=(Math.random()*.5)+'s';c.appendChild(p);}}
+function spawnParticles(c,n){if(!c)return;c.innerHTML='';var cols=['#6366F1','#22c55e','#f59e0b','#818cf8','#34d399'];for(var i=0;i<n;i++){var p=document.createElement('div');p.className='float-particle';p.style.left=Math.random()*100+'%';p.style.bottom='0';var sz=(Math.random()*3+1)+'px';p.style.width=sz;p.style.height=sz;p.style.setProperty('--dx',(Math.random()*80-40)+'px');p.style.animationDuration=(Math.random()*5+3)+'s';p.style.animationDelay=(Math.random()*3)+'s';p.style.background=cols[Math.floor(Math.random()*cols.length)];c.appendChild(p);}}
+function spawnRings(){var c=document.getElementById('cta-rings');if(!c)return;c.innerHTML='';for(var i=0;i<5;i++){var r=document.createElement('div');r.className='cta-ring';var sz=(200+i*100)+'px';r.style.width=sz;r.style.height=sz;r.style.left='calc(50% - '+(100+i*50)+'px)';r.style.top='calc(40% - '+(100+i*50)+'px)';r.style.animationDelay=(i*.8)+'s';c.appendChild(r);}}
+
+// Journey phases
+function jP(phase){
+  if(jPhase>=phase)return;jPhase=phase;
+  var pl=document.querySelector('#j-path'),dt=document.querySelector('#j-dot'),ph=document.getElementById('pd3-phone'),tk=document.getElementById('pd3-token'),ds=document.getElementById('pd3-disc'),ti=document.getElementById('jt'),su=document.getElementById('js');
+  var pills=['jp1','jp2','jp3','jp4'];
+  function setPill(idx){pills.forEach(function(id,i){var e=document.getElementById(id);if(!e)return;e.className='step-pill'+(i<idx?' done':'')+(i===idx?' active':'');});}
+  if(phase===0){setPill(0);if(ph)ph.classList.add('show');if(dt){dt.classList.add('show');dt.setAttribute('cx','240');dt.setAttribute('cy','480');}if(ti)ti.textContent='Customer scans QR at Brew & Co';if(su)su.textContent='Static QR at the counter — 2 seconds';}
+  if(phase===1){setPill(1);if(ph)ph.classList.remove('show');if(tk)tk.classList.add('show');if(ti)ti.textContent='Instant token delivered';if(su)su.textContent='Via WhatsApp or on screen — 8-character code';}
+  if(phase===2){setPill(2);if(tk)tk.classList.remove('show');if(pl)pl.classList.add('drawn');if(dt){dt.classList.add('show');var st2=performance.now();function mv(now){var p=Math.min((now-st2)/2000,1),x=240+(1040-240)*p,y=480+Math.sin(p*Math.PI)*-130;dt.setAttribute('cx',x);dt.setAttribute('cy',y);if(p<1&&curScene==='pd3')requestAnimationFrame(mv);}requestAnimationFrame(mv);}if(ti)ti.textContent='Customer visits FitZone next door';if(su)su.textContent='Shows the token code to the cashier';}
+  if(phase===3){setPill(3);if(ds)ds.classList.add('show');if(ti)ti.textContent='Redeemed at partner store';if(su)su.textContent='Verified new walk-in — tracked for both stores';spawnConfetti(document.getElementById('pd3-confetti'));}
+}
+
+function activateScene(id,elapsed){
+  if(curScene===id){
+    if(id==='pd3'){var t=elapsed-151;if(t>=0&&t<4)jP(0);if(t>=4&&t<8)jP(1);if(t>=8&&t<12)jP(2);if(t>=12)jP(3);}
+    return;
+  }
+  curScene=id;jPhase=-1;
+
+  // Music transitions
+  if(!ambStarted&&elapsed>=0&&soundOn){Amb.start();ambStarted=true;}
+  if(!musicStarted&&elapsed>=69&&soundOn){Amb.fadeOut(2);Music.init(.35);musicStarted=true;}
+  if(musicStarted&&elapsed>=134&&soundOn){Music.setVol(.65);}
+
+  // Deactivate all
+  var scenes=document.querySelectorAll('.scene');for(var i=0;i<scenes.length;i++){scenes[i].classList.remove('active');var els=scenes[i].querySelectorAll('.pop,.slide-l,.slide-r');for(var j=0;j<els.length;j++)els[j].classList.remove('show');}
+  var el=document.getElementById(id);if(!el)return;el.classList.add('active');
+
+  // Speak voiceover
+  if(VO_MAP[id]!==undefined&&soundOn){setTimeout(function(){VO.speak(VO_MAP[id]);},500);}
+
+  requestAnimationFrame(function(){requestAnimationFrame(function(){
+    var anims=el.querySelectorAll('.pop,.slide-l,.slide-r');for(var k=0;k<anims.length;k++)anims[k].classList.add('show');
+
+    // Product demo triggers
+    if(id==='pd1'){setTimeout(function(){var b=document.getElementById('pd1-best');if(b)b.style.animation='bestMatchGlow 1.5s ease-in-out 2';},1500);}
+    if(id==='pd2'){setTimeout(function(){var lv=document.getElementById('pd2-live');if(lv)lv.classList.add('live-pulse');},800);}
+    if(id==='pd3'){
+      var pl=document.querySelector('#j-path');if(pl)pl.classList.remove('drawn');
+      var dt=document.querySelector('#j-dot');if(dt){dt.classList.remove('show');dt.setAttribute('cx','240');dt.setAttribute('cy','480');}
+      var ph=document.getElementById('pd3-phone');if(ph)ph.classList.remove('show');
+      var tk=document.getElementById('pd3-token');if(tk)tk.classList.remove('show');
+      var ds=document.getElementById('pd3-disc');if(ds)ds.classList.remove('show');
+      var cf=document.getElementById('pd3-confetti');if(cf)cf.innerHTML='';
+      jP(0);
+    }
+    if(id==='pd4'){setTimeout(function(){animCnt(document.getElementById('mc'),247,'',1200);animCnt(document.getElementById('mr'),184000,'₹',1500);animCnt(document.getElementById('mp'),42600,'₹',1500);animCnt(document.getElementById('mret'),65,'',1400,true);animCnt(document.getElementById('mnet'),42000,'',1600);},600);}
+    if(id==='pd5'){spawnParticles(document.getElementById('cta-particles'),50);spawnRings();}
+  });});
+}
+
+function loop(ts){
+  if(!startTime)startTime=ts;var elapsed=(ts-startTime)/1000;
+  if(elapsed>=TOTAL){document.getElementById('progress-bar').style.width='100%';activateScene('pd5',TOTAL);return;}
+  document.getElementById('progress-bar').style.width=(elapsed/TOTAL*100)+'%';
+  for(var i=0;i<SCENES.length;i++){if(elapsed>=SCENES[i].start&&elapsed<SCENES[i].end){activateScene(SCENES[i].id,elapsed);break;}}
+  rafId=requestAnimationFrame(loop);
+}
+
+function start(){
+  startTime=null;curScene=null;jPhase=-1;ambStarted=false;musicStarted=false;
+  document.getElementById('progress-bar').style.width='0%';
+  VO.stop();Amb.stop();Music.stop();
+  var scenes=document.querySelectorAll('.scene');for(var i=0;i<scenes.length;i++){scenes[i].classList.remove('active');var a=scenes[i].querySelectorAll('.pop,.slide-l,.slide-r');for(var j=0;j<a.length;j++)a[j].classList.remove('show');}
+  ['mc','mr','mp','mret','mnet'].forEach(function(id){var e=document.getElementById(id);if(e)e.textContent='0';});
+  var lv=document.getElementById('pd2-live');if(lv)lv.classList.remove('live-pulse');
+  if(rafId)cancelAnimationFrame(rafId);rafId=requestAnimationFrame(loop);
+}
+function restart(){start();}
+
+// Auto-start on first interaction (needed for audio)
+var firstClick=false;
+document.addEventListener('click',function(){if(!firstClick){firstClick=true;if(soundOn){Amb.start();ambStarted=true;}}});
+start();
+</script>
+</body>
+</html>
